@@ -4,6 +4,7 @@ class UrlChecker {
         this.resultElement = document.getElementById('result');
         this.checkTimeout = null;
         this.THROTTLE_DELAY = 500;
+        this.lastCheckedUrl = '';
 
         this.initialize();
     }
@@ -17,6 +18,7 @@ class UrlChecker {
     
         if (!url) {
             this.displayResult('Please enter a URL', 'invalid');
+            this.lastCheckedUrl = '';
             return;
         }
 
@@ -24,6 +26,9 @@ class UrlChecker {
             this.displayResult('Invalid URL format', 'invalid');
             return;
         }
+
+        this.displayResult('Checking URL...', 'checking');
+        this.lastCheckedUrl = url;
 
         this.throttleExistenceCheck(url);
     }
@@ -67,21 +72,27 @@ class UrlChecker {
     }
 
     async checkUrlExistence(url) {
-        this.displayResult('Checking URL...', 'checking');
+
+        const currentInput = this.inputElement.value.trim();
+        const checkId = url;
 
         try {
             const response = await this.mockServerCheck(url);
-            
-            if (response.exists) {
-                this.displayResult(
-                    `URL exists! Type: ${response.type}`,
-                    'valid'
-                );
-            } else {
-                this.displayResult('URL does not exist', 'invalid');
+
+            if (this.inputElement.value.trim() === checkId && this.lastCheckedUrl === checkId) {
+                if (response.exists) {
+                    this.displayResult(
+                        `URL exists! Type: ${response.type}`,
+                        'valid'
+                    );
+                } else {
+                    this.displayResult('URL does not exist', 'invalid');
+                }
             }
         } catch (error) {
-            this.displayResult('Error checking URL', 'invalid');
+            if (this.inputElement.value.trim() === checkId && this.lastCheckedUrl === checkId) {
+                this.displayResult('Error checking URL', 'invalid');
+            }
         }
     }
 
